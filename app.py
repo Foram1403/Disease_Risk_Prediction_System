@@ -282,8 +282,37 @@ with selected_tab[1]:
         st.info("Upload 'heart_cleveland_upload.csv' to see analytics.")
 
 # --- TAB 3: SYSTEM INFO ---
+# --- TAB 3: SYSTEM INFO (Improved About Content) ---
 with selected_tab[2]:
-    st.title("About CardioSense AI")
-    st.info("This system uses a Random Forest Classifier trained on the Cleveland Heart Disease Dataset.")
-    st.write("**Features included in Analysis:**")
-    st.write(", ".join(['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal']))
+    st.markdown("""
+        <div style='background: white; padding: 30px; border-radius: 20px; box-shadow: 5px 5px 15px #d1d9e6;'>
+            <h2 style='color: #1e3a8a; margin-top: 0;'>About CardioSense AI</h2>
+            <p style='color: #475569; font-size: 1.1rem; line-height: 1.6;'>
+                CardioSense AI is a state-of-the-art diagnostic support tool designed to assist healthcare professionals 
+                in the early detection of cardiovascular risks. By leveraging advanced <b>Machine Learning</b> 
+                algorithms and historical clinical data, the system identifies subtle patterns in patient biomarkers 
+                that may indicate the presence of heart disease.
+            </p>
+            <hr style='border: 0.5px solid #e2e8f0;'>
+            <h4 style='color: #1e3a8a;'>How It Works</h4>
+            <p style='color: #475569;'>
+                The engine is powered by a <b>Random Forest Classifier</b> trained on the gold-standard 
+                <i>Cleveland Heart Disease Dataset</i>. It analyzes 13 critical health metrics, 
+                ranging from basic biometrics like age and sex to complex indicators such as ST-segment 
+                depression and major vessel fluoroscopy.
+            </p>
+            <div style='background: #f8fafc; padding: 20px; border-left: 5px solid #2563eb; border-radius: 10px;'>
+                <h5 style='margin-top: 0; color: #1e3a8a;'>⚠️ Medical Disclaimer</h5>
+                <p style='margin-bottom: 0; font-size: 0.95rem; color: #64748b;'>
+                    This tool is intended for educational and research purposes only. It is designed to act as a 
+                    supplemental screening aid and <b>must not</b> be used as a replacement for professional 
+                    medical advice, diagnosis, or treatment. Always seek the advice of a qualified physician 
+                    regarding any medical condition.
+                </p>
+            </div>
+            <br>
+            <p style='font-size: 0.85rem; color: #94a3b8; text-align: center;'>
+                <b>Version 2.0</b> | Optimized for Streamlit Cloud Deployment | Developed with ❤️ for better health.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
