@@ -85,7 +85,6 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-import shap
 
 # --- Configuration ---
 st.set_page_config(page_title="Heart Disease Analytics & Prediction", layout="wide")
@@ -93,7 +92,7 @@ st.set_page_config(page_title="Heart Disease Analytics & Prediction", layout="wi
 # --- Utility Functions ---
 @st.cache_data
 def load_data():
-    # Loading the dataset provided in the repository
+    # Loading the dataset provided
     df = pd.read_csv("heart_cleveland_upload.csv")
     # Rename 'condition' to 'target' for clarity if needed
     if 'condition' in df.columns:
@@ -102,7 +101,7 @@ def load_data():
 
 @st.cache_resource
 def load_model():
-    # Load the Random Forest model from the local directory
+    # Load the Random Forest model
     model_path = "heart-disease-prediction-RF-model.pkl"
     if os.path.exists(model_path):
         with open(model_path, "rb") as f:
@@ -117,16 +116,16 @@ feature_cols = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg',
 
 # --- Sidebar Navigation ---
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "EDA", "Prediction", "Model Insights (SHAP)"])
+# Removed "Model Insights (SHAP)" from navigation
+page = st.sidebar.radio("Go to", ["Home", "EDA", "Prediction"])
 
 # --- Page: Home ---
 if page == "Home":
     st.title("❤️ Heart Disease Prediction System")
     st.markdown("""
     Welcome to the Heart Disease Diagnostic Tool. This application allows you to:
-    1. **Explore** clinical data trends.
-    2. **Predict** heart disease risk for individual patients.
-    3. **Understand** the "why" behind model predictions using SHAP values.
+    1. **Explore** clinical data trends through interactive charts.
+    2. **Predict** heart disease risk for individual patients using a machine learning model.
     """)
     st.image("https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=800", use_column_width=True)
     st.subheader("Dataset Preview")
@@ -168,7 +167,7 @@ elif page == "Prediction":
             st.write("Enter patient details:")
             c1, c2, c3 = st.columns(3)
             
-            # Form Inputs
+            # Form Inputs based on training features
             age = c1.number_input("Age", 1, 120, 50)
             sex = c1.selectbox("Sex", [1, 0], format_func=lambda x: "Male" if x==1 else "Female")
             cp = c1.selectbox("Chest Pain Type (0-3)", [0, 1, 2, 3])
@@ -196,26 +195,3 @@ elif page == "Prediction":
                 st.error("### 🔴 Result: High Risk of Heart Disease")
             else:
                 st.success("### 🟢 Result: No Significant Risk Detected")
-
-# --- Page: Model Insights (SHAP) ---
-elif page == "Model Insights (SHAP)":
-    st.title("🧠 Model Explainability")
-    st.write("This section shows how much each feature contributed to the model's decision across the entire dataset.")
-    
-    if model is not None:
-        # Prepare background data for SHAP
-        X = df[feature_cols]
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-        
-        fig, ax = plt.subplots()
-        # Summary plot for class 1 (Disease)
-        shap.summary_plot(shap_values[1], X, plot_type="bar", show=False)
-        st.pyplot(fig)
-        st.info("The features at the top (e.g., 'ca' or 'cp') are the most important predictors for this model.")
-    else:
-        st.error("Model required for SHAP analysis.")
-
-# if __name__ == "__main__":
-#     main()
-
