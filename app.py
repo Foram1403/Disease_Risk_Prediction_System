@@ -131,7 +131,6 @@
 #         fig, ax = plt.subplots(figsize=(12, 8))
 #         sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap='coolwarm', center=0)
 #         st.pyplot(fig)
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -140,160 +139,151 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- Config & Unique Theme ---
-st.set_page_config(page_title="NEURAL-HEART DX", layout="wide")
+# --- Page Config ---
+st.set_page_config(page_title="CardioSense AI", layout="wide", page_icon="❤️")
 
-# Unique CSS: Glassmorphism + Futuristic Medical Glow
+# --- Custom Styling (The "No One Uses This" UI) ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+    /* Main Background and Fonts */
+    .main { background-color: #f0f2f6; }
+    h1, h2, h3 { color: #1e3a8a; font-family: 'Helvetica Neue', sans-serif; }
     
-    html, body, [data-testid="stAppViewContainer"] {
-        background: radial-gradient(circle at top right, #0d1b2a, #1b263b);
-        font-family: 'Inter', sans-serif;
-        color: #e0e1dd;
-    }
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(15px);
-        border-radius: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 2.5rem;
-        margin-bottom: 20px;
-    }
-    .step-header {
-        font-family: 'Orbitron', sans-serif;
-        color: #778da9;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        margin-bottom: 20px;
-    }
+    /* Neumorphic Card Styling */
+    .st-emotion-cache-12w0qpk { border-radius: 20px; border: none; box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff; padding: 25px; }
+    
+    /* Custom Button */
     .stButton>button {
-        background: linear-gradient(135deg, #1b263b, #415a77);
-        color: #e0e1dd; border: 1px solid #778da9; border-radius: 5px;
-        padding: 0.6rem 2rem; font-family: 'Orbitron';
-        transition: all 0.4s ease;
         width: 100%;
+        border-radius: 12px;
+        height: 3em;
+        background: linear-gradient(145deg, #2563eb, #1d4ed8);
+        color: white;
+        font-weight: bold;
+        border: none;
+        box-shadow: 5px 5px 10px #bec8d9;
+        transition: 0.3s;
     }
-    .stButton>button:hover {
-        background: #778da9;
-        color: #0d1b2a;
-    }
+    .stButton>button:hover { transform: translateY(-2px); box-shadow: 7px 7px 14px #bec8d9; }
+    
+    /* Navigation Bar */
+    .nav-container { display: flex; justify-content: center; gap: 20px; padding: 10px; background: white; border-radius: 50px; margin-bottom: 30px; box-shadow: inset 2px 2px 5px #bec8d9, inset -2px -2px 5px #ffffff; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- Asset Loading ---
-@st.cache_data
-def load_assets():
-    df = pd.read_csv("heart_cleveland_upload.csv")
-    if 'condition' in df.columns:
-        df = df.rename(columns={'condition': 'target'})
-    
-    model = None
-    model_path = "heart-disease-prediction-RF-model.pkl"
+# --- Resource Loading ---
+@st.cache_resource
+def load_prediction_engine():
+    model_path = "heart-disease-prediction-RF-model.pkl" #
     if os.path.exists(model_path):
         with open(model_path, "rb") as f:
-            model = pickle.load(f)
-    return df, model
+            return pickle.load(f)
+    return None
 
-df, model = load_assets()
+@st.cache_data
+def load_core_data():
+    df = pd.read_csv("heart_cleveland_upload.csv") #
+    if 'condition' in df.columns:
+        df = df.rename(columns={'condition': 'target'})
+    return df
 
-# --- Session State for Flow ---
-if 'step' not in st.session_state:
-    st.session_state.step = 1
-if 'patient_data' not in st.session_state:
-    st.session_state.patient_data = {}
+# Initialize Data/Model
+df = load_core_data()
+model = load_prediction_engine()
 
-def next_step(): st.session_state.step += 1
-def prev_step(): st.session_state.step -= 1
+# --- Top Navigation ---
+st.markdown("<h1 style='text-align: center;'>🫀 CardioSense AI Console</h1>", unsafe_allow_html=True)
+selected_tab = st.tabs(["🚀 Live Diagnostic", "📈 Population Trends", "ℹ️ System Info"])
 
-# --- Top Navigation Visualizer ---
-st.markdown("<br>", unsafe_allow_html=True)
-nav_cols = st.columns(4)
-steps = ["BIOMETRICS", "VITALS", "LABS", "RESULT"]
-for i, name in enumerate(steps):
-    active = st.session_state.step >= i+1
-    opacity = "1" if active else "0.3"
-    border = "2px solid #778da9" if active else "1px solid rgba(255,255,255,0.1)"
-    nav_cols[i].markdown(f"""
-        <div style='border-top: {border}; text-align:center; padding-top:10px; 
-        font-family:Orbitron; font-size:9px; color:#778da9; opacity:{opacity}'>{name}</div>
-    """, unsafe_allow_html=True)
-
-# --- Main Walkthrough Flow ---
-st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-
-if st.session_state.step == 1:
-    st.markdown('<p class="step-header">Phase 01 // Biometrics</p>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    st.session_state.patient_data['age'] = c1.number_input("Patient Age", 1, 110, 50)
-    st.session_state.patient_data['sex'] = c2.selectbox("Sex", [1, 0], format_func=lambda x: "Male" if x==1 else "Female")
-    st.session_state.patient_data['cp'] = st.select_slider("Chest Pain Type (0-3)", options=[0, 1, 2, 3])
-    st.button("INITIALIZE VITALS →", on_click=next_step)
-
-elif st.session_state.step == 2:
-    st.markdown('<p class="step-header">Phase 02 // Hemodynamics</p>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    st.session_state.patient_data['trestbps'] = c1.slider("Resting BP (mm/Hg)", 80, 200, 120)
-    st.session_state.patient_data['thalach'] = c2.slider("Max Heart Rate Achieved", 60, 220, 150)
-    st.session_state.patient_data['exang'] = st.radio("Exercise-Induced Angina", [1, 0], format_func=lambda x: "Yes" if x==1 else "No", horizontal=True)
+# --- TAB 1: LIVE DIAGNOSTIC ---
+with selected_tab[0]:
+    st.write("### Patient Assessment")
     
-    b1, b2 = st.columns([1, 1])
-    b1.button("← PREVIOUS", on_click=prev_step)
-    b2.button("PROCEED TO LABS →", on_click=next_step)
-
-elif st.session_state.step == 3:
-    st.markdown('<p class="step-header">Phase 03 // Laboratory Analysis</p>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    st.session_state.patient_data['chol'] = c1.number_input("Serum Cholestoral", 100, 600, 240)
-    st.session_state.patient_data['oldpeak'] = c2.number_input("ST Depression", 0.0, 6.0, 1.0)
-    
-    st.session_state.patient_data['ca'] = st.selectbox("Major Vessels (0-3)", [0, 1, 2, 3])
-    
-    # Defaults for values not in the walkthrough to match training features
-    st.session_state.patient_data['fbs'] = 0 
-    st.session_state.patient_data['restecg'] = 1
-    st.session_state.patient_data['slope'] = 1
-    st.session_state.patient_data['thal'] = 2
-
-    b1, b2 = st.columns([1, 1])
-    b1.button("← PREVIOUS", on_click=prev_step)
-    b2.button("RUN CORE DIAGNOSIS →", on_click=next_step)
-
-elif st.session_state.step == 4:
-    st.markdown('<p class="step-header">Phase 04 // Diagnostic Result</p>', unsafe_allow_html=True)
-    
-    d = st.session_state.patient_data
-    # Input must match the exact 13 features used in heart_cleveland_upload.csv
-    input_arr = np.array([[d['age'], d['sex'], d['cp'], d['trestbps'], d['chol'], 
-                           d['fbs'], d['restecg'], d['thalach'], d['exang'], 
-                           d['oldpeak'], d['slope'], d['ca'], d['thal']]])
-    
-    if model:
-        prediction = model.predict(input_arr)[0]
+    with st.container():
+        # Split inputs into logical groupings
+        col1, col2, col3 = st.columns(3)
         
-        # Fixed Gauge Logic
-        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw={'projection': 'polar'})
-        ax.set_facecolor('none')
-        fig.patch.set_alpha(0)
-        
-        gauge_color = "#e63946" if prediction == 1 else "#a8dadc"
-        
-        ax.barh(0, np.pi, color='white', alpha=0.1, height=0.5)
-        ax.barh(0, np.pi if prediction == 1 else 0.5, color=gauge_color, height=0.5)
-        ax.set_ylim(-1, 1)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.spines['polar'].set_visible(False)
-        
-        st.pyplot(fig)
+        with col1:
+            st.markdown("#### 👤 Profile")
+            age = st.number_input("Age", 1, 110, 45)
+            sex = st.segmented_control("Biological Sex", options=[1, 0], format_func=lambda x: "Male" if x == 1 else "Female")
+            cp = st.selectbox("Chest Pain Type", options=[0, 1, 2, 3], help="0:Typical, 1:Atypical, 2:Non-anginal, 3:Asymptomatic")
 
-        if prediction == 1:
-            st.markdown("<h2 style='text-align:center; color:#e63946;'>CRITICAL RISK DETECTED</h2>", unsafe_allow_html=True)
-        else:
-            st.markdown("<h2 style='text-align:center; color:#a8dadc;'>NOMINAL RISK DETECTED</h2>", unsafe_allow_html=True)
+        with col2:
+            st.markdown("#### 🩺 Vitals")
+            trestbps = st.slider("Resting Blood Pressure", 80, 200, 120)
+            thalach = st.slider("Max Heart Rate", 60, 220, 150)
+            chol = st.number_input("Cholesterol (mg/dl)", 100, 600, 240)
+
+        with col3:
+            st.markdown("#### 🧪 Lab Data")
+            ca = st.selectbox("Major Vessels (0-3)", [0, 1, 2, 3])
+            thal = st.selectbox("Thalassemia", [1, 2, 3], format_func=lambda x: ["Normal", "Fixed Defect", "Reversible Defect"][x-1])
+            oldpeak = st.number_input("ST Depression", 0.0, 6.0, 1.0)
+
+        with st.expander("Advanced Clinical Parameters"):
+            ac1, ac2, ac3 = st.columns(3)
+            exang = ac1.checkbox("Exercise-Induced Angina")
+            fbs = ac2.checkbox("Fasting Blood Sugar > 120mg/dl")
+            slope = ac3.select_slider("ST Slope", options=[0, 1, 2])
+            restecg = 1 # Static default to match features
+
+    st.markdown("---")
+    
+    if st.button("RUN AI DIAGNOSIS"):
+        if model:
+            # Prepare data in exact feature order used in training
+            # age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal
+            features = np.array([[age, sex, cp, trestbps, chol, int(fbs), restecg, 
+                                 thalach, int(exang), oldpeak, slope, ca, thal]])
             
-    st.button("RESET ASSESSMENT ↺", on_click=lambda: st.session_state.update({"step": 1}))
+            prediction = model.predict(features)[0]
+            
+            # Custom Result Layout
+            res_col1, res_col2 = st.columns([1, 2])
+            
+            with res_col1:
+                # Simple Visual Gauge using Matplotlib
+                fig, ax = plt.subplots(figsize=(4, 4), subplot_kw={'projection': 'polar'})
+                val = 0.8 if prediction == 1 else 0.2
+                ax.barh(0, val * np.pi, color='#e63946' if prediction == 1 else '#2a9d8f', height=0.5)
+                ax.set_xlim(0, np.pi)
+                ax.set_axis_off()
+                st.pyplot(fig)
 
-st.markdown('</div>', unsafe_allow_html=True)
+            with res_col2:
+                if prediction == 1:
+                    st.error("## ⚠️ High Risk Detected")
+                    st.write("Patient data shows significant correlation with cardiovascular conditions. Clinical intervention recommended.")
+                else:
+                    st.success("## ✅ Low Risk Detected")
+                    st.write("Biometric markers are within expected ranges for this profile.")
+        else:
+            st.error("Model file not found. Please upload 'heart-disease-prediction-RF-model.pkl'.")
+
+# --- TAB 2: POPULATION TRENDS ---
+with selected_tab[1]:
+    st.write("### Data Insights")
+    if df is not None:
+        t_col1, t_col2 = st.columns(2)
+        
+        with t_col1:
+            st.write("#### Age vs. Risk")
+            fig, ax = plt.subplots()
+            sns.kdeplot(data=df, x="age", hue="target", fill=True, palette="crest", ax=ax)
+            st.pyplot(fig)
+            
+        with t_col2:
+            st.write("#### Correlation Heatmap")
+            fig, ax = plt.subplots(figsize=(10, 7))
+            sns.heatmap(df.corr(), annot=False, cmap="RdBu_r", ax=ax)
+            st.pyplot(fig)
+    else:
+        st.info("Upload 'heart_cleveland_upload.csv' to see analytics.")
+
+# --- TAB 3: SYSTEM INFO ---
+with selected_tab[2]:
+    st.title("About CardioSense AI")
+    st.info("This system uses a Random Forest Classifier trained on the Cleveland Heart Disease Dataset.")
+    st.write("**Features included in Analysis:**")
+    st.write(", ".join(['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal']))
