@@ -100,7 +100,7 @@ def load_dataset(path=None):
     return None
 
 @st.cache_resource
-def load_model(pickle_path="heart-disease-prediction-knn-model.pkl"):
+def load_model(pickle_path="heart-disease-prediction-RF-model.pkl"):
     """Load the trained model pickle. Returns model or None."""
     if os.path.exists(pickle_path):
         try:
@@ -157,7 +157,7 @@ else:
 
 model = load_model()
 if model is None:
-    st.sidebar.warning("Pretrained model not found at 'heart-disease-prediction-knn-model.pkl'. Prediction and SHAP pages will be disabled until model is available.")
+    st.sidebar.warning("Pretrained model not found at 'heart-disease-prediction-RF-model.pkl'. Prediction and SHAP pages will be disabled until model is available.")
 
 # Determine columns to use for features
 # We'll attempt to detect common columns used in your project.
@@ -403,7 +403,7 @@ elif page == "About":
     - SHAP explainability (global & per-sample)  
 
     **Notes / Tips**
-    - Make sure `heart-disease-prediction-knn-model.pkl` and dataset `heart_cleveland_upload.csv` (or `heart_cleveland_upload.csv`) are present in the working directory (or upload dataset via the sidebar).  
+    - Make sure `heart-disease-prediction-RF-model.pkl` and dataset `heart_cleveland_upload.csv` (or `heart_cleveland_upload.csv`) are present in the working directory (or upload dataset via the sidebar).  
     - If SHAP is slow, reduce background/sample sizes (the app uses modest defaults).  
     - For production or cloud deployment, pin compatible package versions in `requirements.txt`.
     """)
@@ -411,3 +411,4 @@ elif page == "About":
     st.markdown("**Author:** You — adapt and style as you like! 🎨")
     st.markdown("**Commands to run locally:**")
     st.code("streamlit run streamlit_app.py", language="bash")
+
