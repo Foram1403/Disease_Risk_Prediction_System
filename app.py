@@ -214,4 +214,86 @@ nav_cols = st.columns(4)
 steps = ["BIOMETRICS", "VITALS", "LABS", "RESULT"]
 for i, name in enumerate(steps):
     active = st.session_state.step >= i+1
-    opacity = "1"
+    opacity = "1" if active else "0.3"
+    border = "2px solid #778da9" if active else "1px solid rgba(255,255,255,0.1)"
+    nav_cols[i].markdown(f"""
+        <div style='border-top: {border}; text-align:center; padding-top:10px; 
+        font-family:Orbitron; font-size:9px; color:#778da9; opacity:{opacity}'>{name}</div>
+    """, unsafe_allow_html=True)
+
+# --- Main Walkthrough Flow ---
+st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+
+if st.session_state.step == 1:
+    st.markdown('<p class="step-header">Phase 01 // Biometrics</p>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    st.session_state.patient_data['age'] = c1.number_input("Patient Age", 1, 110, 50)
+    st.session_state.patient_data['sex'] = c2.selectbox("Sex", [1, 0], format_func=lambda x: "Male" if x==1 else "Female")
+    st.session_state.patient_data['cp'] = st.select_slider("Chest Pain Type (0-3)", options=[0, 1, 2, 3])
+    st.button("INITIALIZE VITALS →", on_click=next_step)
+
+elif st.session_state.step == 2:
+    st.markdown('<p class="step-header">Phase 02 // Hemodynamics</p>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    st.session_state.patient_data['trestbps'] = c1.slider("Resting BP (mm/Hg)", 80, 200, 120)
+    st.session_state.patient_data['thalach'] = c2.slider("Max Heart Rate Achieved", 60, 220, 150)
+    st.session_state.patient_data['exang'] = st.radio("Exercise-Induced Angina", [1, 0], format_func=lambda x: "Yes" if x==1 else "No", horizontal=True)
+    
+    b1, b2 = st.columns([1, 1])
+    b1.button("← PREVIOUS", on_click=prev_step)
+    b2.button("PROCEED TO LABS →", on_click=next_step)
+
+elif st.session_state.step == 3:
+    st.markdown('<p class="step-header">Phase 03 // Laboratory Analysis</p>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    st.session_state.patient_data['chol'] = c1.number_input("Serum Cholestoral", 100, 600, 240)
+    st.session_state.patient_data['oldpeak'] = c2.number_input("ST Depression", 0.0, 6.0, 1.0)
+    
+    st.session_state.patient_data['ca'] = st.selectbox("Major Vessels (0-3)", [0, 1, 2, 3])
+    
+    # Defaults for values not in the walkthrough to match training features
+    st.session_state.patient_data['fbs'] = 0 
+    st.session_state.patient_data['restecg'] = 1
+    st.session_state.patient_data['slope'] = 1
+    st.session_state.patient_data['thal'] = 2
+
+    b1, b2 = st.columns([1, 1])
+    b1.button("← PREVIOUS", on_click=prev_step)
+    b2.button("RUN CORE DIAGNOSIS →", on_click=next_step)
+
+elif st.session_state.step == 4:
+    st.markdown('<p class="step-header">Phase 04 // Diagnostic Result</p>', unsafe_allow_html=True)
+    
+    d = st.session_state.patient_data
+    # Input must match the exact 13 features used in heart_cleveland_upload.csv
+    input_arr = np.array([[d['age'], d['sex'], d['cp'], d['trestbps'], d['chol'], 
+                           d['fbs'], d['restecg'], d['thalach'], d['exang'], 
+                           d['oldpeak'], d['slope'], d['ca'], d['thal']]])
+    
+    if model:
+        prediction = model.predict(input_arr)[0]
+        
+        # Fixed Gauge Logic
+        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw={'projection': 'polar'})
+        ax.set_facecolor('none')
+        fig.patch.set_alpha(0)
+        
+        gauge_color = "#e63946" if prediction == 1 else "#a8dadc"
+        
+        ax.barh(0, np.pi, color='white', alpha=0.1, height=0.5)
+        ax.barh(0, np.pi if prediction == 1 else 0.5, color=gauge_color, height=0.5)
+        ax.set_ylim(-1, 1)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.spines['polar'].set_visible(False)
+        
+        st.pyplot(fig)
+
+        if prediction == 1:
+            st.markdown("<h2 style='text-align:center; color:#e63946;'>CRITICAL RISK DETECTED</h2>", unsafe_allow_html=True)
+        else:
+            st.markdown("<h2 style='text-align:center; color:#a8dadc;'>NOMINAL RISK DETECTED</h2>", unsafe_allow_html=True)
+            
+    st.button("RESET ASSESSMENT ↺", on_click=lambda: st.session_state.update({"step": 1}))
+
+st.markdown('</div>', unsafe_allow_html=True)
