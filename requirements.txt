@@ -7,3 +7,10 @@ seaborn>=0.12
 shap>=0.41
 joblib>=1.2
 plotly
+
+streamlit
+scikit-learn
+pandas
+numpy
+imbalanced-learn
+matplotlib
