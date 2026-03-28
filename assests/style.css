@@ -16,6 +16,7 @@ section[data-testid="stSidebar"] {
     color: white;
 }
 
+
 section[data-testid="stSidebar"] * {
     color: white !important;
 }
@@ -98,3 +99,13 @@ input, textarea, select {
     transform: translateY(-5px);
     transition: 0.3s;
 }
+
+# -------------------------------
+# SIDEBAR NAVIGATION
+# -------------------------------
+st.sidebar.title("🏥 Navigation")
+
+page = st.sidebar.radio(
+    "Go to",
+    ["Dashboard", "Profile", "Reports", "AI Assistant"]
+)
