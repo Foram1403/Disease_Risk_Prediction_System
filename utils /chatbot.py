@@ -1,15 +1,25 @@
-chatbot_data = {
-    "heart disease": "Heart disease involves blocked arteries or heart issues.",
-    "diabetes": "Diabetes is high blood sugar due to insulin issues.",
-    "liver disease": "Liver disease affects detoxification and metabolism.",
-    "reduce risk": "Exercise, healthy diet, avoid smoking.",
-    "high risk": "Consult doctor immediately.",
-    "low risk": "Maintain healthy lifestyle."
-}
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+questions = [
+    "what is heart disease",
+    "how to reduce risk",
+    "what is diabetes",
+    "liver disease symptoms"
+]
+
+answers = [
+    "Heart disease affects heart function.",
+    "Exercise and healthy diet reduce risk.",
+    "Diabetes is high blood sugar condition.",
+    "Liver disease causes fatigue and jaundice."
+]
+
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(questions)
 
 def chatbot_response(user_input):
-    user_input = user_input.lower()
-    for key in chatbot_data:
-        if key in user_input:
-            return chatbot_data[key]
-    return "Please consult a healthcare professional."
+    user_vec = vectorizer.transform([user_input])
+    similarity = cosine_similarity(user_vec, X)
+    idx = similarity.argmax()
+    return answers[idx]
