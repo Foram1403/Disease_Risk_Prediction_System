@@ -4,4 +4,4 @@ numpy
 scikit-learn
 imbalanced-learn
 matplotlib
-sqlite3
+reportlab
