@@ -8,20 +8,23 @@ from analytics import show_analytics
 st.set_page_config(page_title="AI Healthcare", layout="wide")
 
 # LOAD MODELS
+models = {}
+
 try:
-    models = {
-        "Diabetes": load_model("diabetes_model.pkl"),
-        "Heart": load_model("heart_model.pkl"),
-        "Breast Cancer": load_model("breast_cancer_model.pkl"),
-        "Lung Cancer": load_model("lung_cancer_model.pkl"),
-    }
+    models["Diabetes"] = load_model("diabetes_model.pkl")
+    models["Heart"] = load_model("heart_model.pkl")
+    models["Breast Cancer"] = load_model("breast_cancer_model.pkl")
+    models["Lung Cancer"] = load_model("lung_cancer_model.pkl")
 except Exception as e:
     st.error(f"❌ Model loading failed: {e}")
 
+if not models:
+    st.stop()
 # UI
 st.title("🧠 AI Healthcare Dashboard")
 
 disease = st.sidebar.selectbox("Select Disease", list(models.keys()))
+
 
 # LOAD DATA
 data_files = {
@@ -37,6 +40,7 @@ df = pd.read_csv(data_files[disease])
 show_analytics(df, df.columns[-1])
 
 # INPUTS
+st.write("Models folder content:", os.listdir("models"))
 st.subheader("Enter Patient Data")
 
 inputs = []
