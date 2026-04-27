@@ -1,5 +1,7 @@
-numpy
-pickle-mixin
 streamlit
-streamlit-option-menu
+pandas
+numpy
 scikit-learn
+matplotlib
+seaborn
+pickle-mixin
