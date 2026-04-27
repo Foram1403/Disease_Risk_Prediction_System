@@ -40,7 +40,6 @@ df = pd.read_csv(data_files[disease])
 show_analytics(df, df.columns[-1])
 
 # INPUTS
-st.write("Models folder content:", os.listdir("models"))
 st.subheader("Enter Patient Data")
 
 inputs = []
