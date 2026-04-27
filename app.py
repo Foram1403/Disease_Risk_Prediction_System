@@ -8,12 +8,15 @@ from analytics import show_analytics
 st.set_page_config(page_title="AI Healthcare", layout="wide")
 
 # LOAD MODELS
-models = {
-    "Diabetes": load_model("diabetes_model.pkl"),
-    "Heart": load_model("heart_model.pkl"),
-    "Breast Cancer": load_model("breast_cancer_model.pkl"),
-    "Lung Cancer": load_model("lung_cancer_model.pkl"),
-}
+try:
+    models = {
+        "Diabetes": load_model("diabetes_model.pkl"),
+        "Heart": load_model("heart_model.pkl"),
+        "Breast Cancer": load_model("breast_cancer_model.pkl"),
+        "Lung Cancer": load_model("lung_cancer_model.pkl"),
+    }
+except Exception as e:
+    st.error(f"❌ Model loading failed: {e}")
 
 # UI
 st.title("🧠 AI Healthcare Dashboard")
