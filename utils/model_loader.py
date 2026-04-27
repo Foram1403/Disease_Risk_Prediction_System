@@ -1,8 +1,11 @@
 import pickle
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
 def load_model(model_name):
-    path = os.path.join(BASE_DIR, "models", model_name)
-    return pickle.load(open(path, "rb"))
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+    model_path = os.path.join(BASE_DIR, "models", model_name)
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model not found: {model_path}")
+
+    return pickle.load(open(model_path, "rb"))
