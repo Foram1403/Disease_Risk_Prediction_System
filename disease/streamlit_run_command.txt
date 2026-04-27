@@ -1,0 +1,1 @@
+streamlit run "C:\Users\tamal\Downloads\MedDetectives\disease\disease.py"
