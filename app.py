@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from utils.model_loader import load_model
-from utils.predictor import predict
+from utils.predict import predict
 from analytics import show_analytics
 
 st.set_page_config(page_title="AI Healthcare", layout="wide")
